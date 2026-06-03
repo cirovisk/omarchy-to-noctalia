@@ -1,0 +1,264 @@
+#!/usr/bin/env python3
+import sys
+import re
+import urllib.request
+import urllib.parse
+import json
+from pathlib import Path
+
+def parse_kitty_colors(content):
+    colors = {}
+                                   
+    bg_match = re.search(r"^\s*background\s+(#[0-9a-fA-F]{6})", content, re.MULTILINE)
+    fg_match = re.search(r"^\s*foreground\s+(#[0-9a-fA-F]{6})", content, re.MULTILINE)
+    cursor_match = re.search(r"^\s*cursor\s+(#[0-9a-fA-F]{6})", content, re.MULTILINE)
+    selection_bg_match = re.search(r"^\s*selection_background\s+(#[0-9a-fA-F]{6})", content, re.MULTILINE)
+    
+    if bg_match: colors["background"] = bg_match.group(1)
+    if fg_match: colors["foreground"] = fg_match.group(1)
+    if cursor_match: colors["cursor"] = cursor_match.group(1)
+    if selection_bg_match: colors["selection_bg"] = selection_bg_match.group(1)
+    
+                            
+    for i in range(16):
+        c_match = re.search(rf"^\s*color{i}\s+(#[0-9a-fA-F]{6})", content, re.MULTILINE)
+        if c_match:
+            colors[f"color{i}"] = c_match.group(1)
+            
+    return colors
+
+def parse_alacritty_colors(content):
+                                                       
+    colors = {}
+    bg_match = re.search(r"background\s*=\s*['\"](#[0-9a-fA-F]{6})['\"]", content)
+    fg_match = re.search(r"foreground\s*=\s*['\"](#[0-9a-fA-F]{6})['\"]", content)
+    
+    if bg_match: colors["background"] = bg_match.group(1)
+    if fg_match: colors["foreground"] = fg_match.group(1)
+    
+                           
+    normal_matches = re.findall(r"\[colors\.normal\]\s*\n(.*?)(?=\n\[|$)", content, re.DOTALL)
+    if normal_matches:
+        sub = normal_matches[0]
+        names = ["black", "red", "green", "yellow", "blue", "magenta", "cyan", "white"]
+        for idx, name in enumerate(names):
+            m = re.search(rf"{name}\s*=\s*['\"](#[0-9a-fA-F]{6})['\"]", sub)
+            if m:
+                colors[f"color{idx}"] = m.group(1)
+                
+                           
+    bright_matches = re.findall(r"\[colors\.bright\]\s*\n(.*?)(?=\n\[|$)", content, re.DOTALL)
+    if bright_matches:
+        sub = bright_matches[0]
+        names = ["black", "red", "green", "yellow", "blue", "magenta", "cyan", "white"]
+        for idx, name in enumerate(names):
+            m = re.search(rf"{name}\s*=\s*['\"](#[0-9a-fA-F]{6})['\"]", sub)
+            if m:
+                colors[f"color{idx+8}"] = m.group(1)
+                
+    return colors
+
+def parse_toml_colors(content):
+    colors = {}
+                                            
+    matches = re.findall(r'^\s*([a-zA-Z0-9_]+)\s*=\s*[\'"](#[0-9a-fA-F]{6})[\'"]', content, re.MULTILINE)
+    for key, val in matches:
+        colors[key] = val
+    return colors
+
+def get_raw_url(github_url, filename):
+                                                                                       
+                                      
+    github_url = github_url.strip().rstrip("/")
+    if github_url.endswith(".git"):
+        github_url = github_url[:-4]
+    
+                                    
+    match = re.search(r"github\.com/([^/]+)/([^/]+)", github_url)
+    if not match:
+        raise ValueError("Invalid GitHub URL format")
+        
+    user, repo = match.group(1), match.group(2)
+    
+                                                                                                    
+    path_match = re.search(r"github\.com/[^/]+/[^/]+/tree/([^/]+)/(.*)", github_url)
+    if path_match:
+        branch = path_match.group(1)
+        subpath = path_match.group(2).rstrip("/")
+        return f"https://raw.githubusercontent.com/{user}/{repo}/{branch}/{subpath}/{filename}", f"https://raw.githubusercontent.com/{user}/{repo}/{branch}/{subpath}/{filename}"
+    
+                             
+    return f"https://raw.githubusercontent.com/{user}/{repo}/main/{filename}", f"https://raw.githubusercontent.com/{user}/{repo}/master/{filename}"
+
+def fetch_file(url_main, url_master):
+                                                      
+    req = urllib.request.Request(url_main, headers={'User-Agent': 'Mozilla/5.0'})
+    try:
+        with urllib.request.urlopen(req) as response:
+            return response.read().decode('utf-8')
+    except Exception:
+        if url_main == url_master:
+            return None
+        req_master = urllib.request.Request(url_master, headers={'User-Agent': 'Mozilla/5.0'})
+        try:
+            with urllib.request.urlopen(req_master) as response:
+                return response.read().decode('utf-8')
+        except Exception:
+            return None
+
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: omarchy-to-noctalia <github_theme_url> [ThemeName]")
+        sys.exit(1)
+        
+    github_url = sys.argv[1]
+    
+                                               
+    if len(sys.argv) >= 3:
+        theme_name = sys.argv[2]
+    else:
+                                                     
+        repo_part = github_url.strip().rstrip("/").split("/")[-1]
+        if repo_part.endswith(".git"):
+            repo_part = repo_part[:-4]
+                                                          
+        clean_name = repo_part.replace("omarchy-", "").replace("-theme", "").replace("-", " ")
+        theme_name = clean_name.title()
+        
+    print(f"Porting theme: '{theme_name}' from {github_url}...")
+    
+                                                                           
+    toml_url_main, toml_url_master = get_raw_url(github_url, "colors.toml")
+    toml_content = fetch_file(toml_url_main, toml_url_master)
+    
+    colors = {}
+    if toml_content:
+        print("Found colors.toml, parsing colors...")
+        colors = parse_toml_colors(toml_content)
+                                       
+        if "accent" in colors and "color4" not in colors:
+            colors["color4"] = colors["accent"]
+    else:
+                                                                    
+        kitty_url_main, kitty_url_master = get_raw_url(github_url, "kitty.conf")
+        kitty_content = fetch_file(kitty_url_main, kitty_url_master)
+        
+        if kitty_content:
+            print("Found kitty.conf, parsing colors...")
+            colors = parse_kitty_colors(kitty_content)
+        else:
+            alacritty_url_main, alacritty_url_master = get_raw_url(github_url, "alacritty.toml")
+            alacritty_content = fetch_file(alacritty_url_main, alacritty_url_master)
+            if alacritty_content:
+                print("Found alacritty.toml, parsing colors...")
+                colors = parse_alacritty_colors(alacritty_content)
+            else:
+                print("Error: Could not find colors.toml, kitty.conf or alacritty.toml in the repository.")
+                sys.exit(1)
+            
+                                      
+    bg = colors.get("background", "#1e1e2e")
+    fg = colors.get("foreground", "#cdd6f4")
+    
+                                           
+    ansi = {f"color{i}": colors.get(f"color{i}", "#ffffff") for i in range(16)}
+    
+                                            
+    hypr_url_main, hypr_url_master = get_raw_url(github_url, "hyprland.conf")
+    hypr_content = fetch_file(hypr_url_main, hypr_url_master)
+    
+    primary_color = None
+    secondary_color = None
+    error_color = None
+    
+    if hypr_content:
+        print("Found hyprland.conf, parsing active borders...")
+                             
+        ab_match = re.search(r"col\.active_border\s*=\s*(rgb[a]?\([0-9a-fA-F,\sdeg]+\)|#[0-9a-fA-F]{6}|[0-9a-fA-F]{8})", hypr_content)
+        if ab_match:
+            val = ab_match.group(1)
+                                                                         
+            hex_match = re.search(r"([0-9a-fA-F]{6})", val)
+            if hex_match:
+                primary_color = f"#{hex_match.group(1)}"
+                
+                                            
+    if not primary_color:
+        primary_color = colors.get("color4", colors.get("color12", "#bd93f9"))              
+    if not secondary_color:
+        secondary_color = colors.get("color5", colors.get("color13", "#ff79c6"))       
+    if not error_color:
+        error_color = colors.get("color1", colors.get("color9", "#ff5555"))      
+        
+    print(f"Theme Colors mapping:")
+    print(f" - Primary (Active Border): {primary_color}")
+    print(f" - Surface (Background): {bg}")
+    print(f" - OnSurface (Foreground): {fg}")
+    
+                                
+    dark_scheme = {
+        "mPrimary": primary_color,
+        "mOnPrimary": bg,
+        "mSecondary": secondary_color,
+        "mOnSecondary": bg,
+        "mTertiary": colors.get("color6", "#8be9fd"),
+        "mOnTertiary": bg,
+        "mError": error_color,
+        "mOnError": bg,
+        "mSurface": bg,
+        "mOnSurface": fg,
+        "mSurfaceVariant": colors.get("color0", bg),
+        "mOnSurfaceVariant": colors.get("color7", fg),
+        "mOutline": colors.get("color8", "#44475a"),
+        "mShadow": "#0b0c0e",
+        "mHover": primary_color,
+        "mOnHover": bg,
+        "terminal": {
+            "background": bg,
+            "foreground": fg,
+            "cursor": colors.get("cursor", primary_color),
+            "cursorText": bg,
+            "selectionBg": colors.get("selection_bg", colors.get("color8", "#44475a")),
+            "selectionFg": fg,
+            "normal": {
+                "black": colors.get("color0", "#21222c"),
+                "red": colors.get("color1", "#ff5555"),
+                "green": colors.get("color2", "#50fa7b"),
+                "yellow": colors.get("color3", "#f1fa8c"),
+                "blue": colors.get("color4", "#bd93f9"),
+                "magenta": colors.get("color5", "#ff79c6"),
+                "cyan": colors.get("color6", "#8be9fd"),
+                "white": colors.get("color7", "#f8f8f2")
+            },
+            "bright": {
+                "black": colors.get("color8", "#6272a4"),
+                "red": colors.get("color9", "#ff6e6e"),
+                "green": colors.get("color10", "#69ff94"),
+                "yellow": colors.get("color11", "#ffffa5"),
+                "blue": colors.get("color12", "#d6acff"),
+                "magenta": colors.get("color13", "#ff92df"),
+                "cyan": colors.get("color14", "#a4ffff"),
+                "white": colors.get("color15", "#ffffff")
+            }
+        }
+    }
+    
+                                                                                        
+    scheme = {
+        "dark": dark_scheme,
+        "light": dark_scheme
+    }
+    
+                   
+    out_dir = Path("/home/demonduck/.config/noctalia/colorschemes") / theme_name
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_file = out_dir / f"{theme_name}.json"
+    
+    with open(out_file, "w") as f:
+        json.dump(scheme, f, indent=2)
+        
+    print(f"\nSuccessfully created Noctalia theme JSON at: {out_file}")
+    print(f"You can now apply it using: qs -c noctalia-shell ipc call colorScheme set \"{theme_name}\"")
+
+if __name__ == "__main__":
+    main()
