@@ -86,7 +86,7 @@
         "white": "#0C0C0C"
       },
       "cursor": "#0C0C0C",
-      "cursorText": "#F2F2F2",
+      "cursorText": "#ffffff",
       "selectionFg": "#F2F2F2",
       "selectionBg": "#FFC799"
     }

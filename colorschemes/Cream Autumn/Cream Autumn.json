@@ -47,13 +47,13 @@
   },
   "light": {
     "mPrimary": "#b47109",
-    "mOnPrimary": "#fbf1c7",
+    "mOnPrimary": "#121212",
     "mSecondary": "#4f5a2a",
     "mOnSecondary": "#fbf1c7",
     "mTertiary": "#3d6b72",
     "mOnTertiary": "#fbf1c7",
     "mError": "#c14a4a",
-    "mOnError": "#fbf1c7",
+    "mOnError": "#ffffff",
     "mSurface": "#fbf1c7",
     "mOnSurface": "#282828",
     "mSurfaceVariant": "#ebdbb2",
@@ -61,7 +61,7 @@
     "mOutline": "#5a5247",
     "mShadow": "#bdae93",
     "mHover": "#b47109",
-    "mOnHover": "#fbf1c7",
+    "mOnHover": "#121212",
     "terminal": {
       "normal": {
         "black": "#282828",
@@ -87,7 +87,7 @@
       "background": "#fbf1c7",
       "selectionFg": "#fbf1c7",
       "selectionBg": "#076678",
-      "cursorText": "#fbf1c7",
+      "cursorText": "#ffffff",
       "cursor": "#282828"
     }
   }

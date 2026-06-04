@@ -49,7 +49,7 @@
     "mPrimary": "#5f627f",
     "mOnPrimary": "#ffffff",
     "mSecondary": "#4a8a14",
-    "mOnSecondary": "#ffffff",
+    "mOnSecondary": "#000000",
     "mTertiary": "#7a6ea8",
     "mOnTertiary": "#ffffff",
     "mError": "#c73c3f",

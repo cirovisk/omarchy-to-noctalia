@@ -1,11 +1,11 @@
 {
   "dark": {
     "mPrimary": "#626262",
-    "mOnPrimary": "#121212",
+    "mOnPrimary": "#ffffff",
     "mSecondary": "#8a8a8a",
     "mOnSecondary": "#121212",
     "mTertiary": "#767676",
-    "mOnTertiary": "#121212",
+    "mOnTertiary": "#000000",
     "mError": "#8a8a8a",
     "mOnError": "#121212",
     "mSurface": "#121212",
@@ -15,7 +15,7 @@
     "mOutline": "#8a8a8a",
     "mShadow": "#0b0c0e",
     "mHover": "#626262",
-    "mOnHover": "#121212",
+    "mOnHover": "#ffffff",
     "terminal": {
       "background": "#121212",
       "foreground": "#e0e0e0",
@@ -47,11 +47,11 @@
   },
   "light": {
     "mPrimary": "#626262",
-    "mOnPrimary": "#121212",
+    "mOnPrimary": "#ffffff",
     "mSecondary": "#8a8a8a",
     "mOnSecondary": "#121212",
     "mTertiary": "#767676",
-    "mOnTertiary": "#121212",
+    "mOnTertiary": "#000000",
     "mError": "#8a8a8a",
     "mOnError": "#121212",
     "mSurface": "#121212",
@@ -61,7 +61,7 @@
     "mOutline": "#8a8a8a",
     "mShadow": "#0b0c0e",
     "mHover": "#626262",
-    "mOnHover": "#121212",
+    "mOnHover": "#ffffff",
     "terminal": {
       "background": "#121212",
       "foreground": "#e0e0e0",

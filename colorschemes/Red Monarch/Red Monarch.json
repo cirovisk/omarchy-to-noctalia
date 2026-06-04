@@ -20,7 +20,7 @@
       "background": "#10090B",
       "foreground": "#EDEDED",
       "cursor": "#BF1111",
-      "cursorText": "#10090B",
+      "cursorText": "#ffffff",
       "selectionBg": "#32292C",
       "selectionFg": "#EDEDED",
       "normal": {
@@ -66,7 +66,7 @@
       "background": "#10090B",
       "foreground": "#EDEDED",
       "cursor": "#BF1111",
-      "cursorText": "#10090B",
+      "cursorText": "#ffffff",
       "selectionBg": "#32292C",
       "selectionFg": "#EDEDED",
       "normal": {

@@ -67,7 +67,7 @@
       "foreground": "#181d18",
       "selectionFg": "#346940",
       "selectionBg": "#ffffff",
-      "cursorText": "#dde5da",
+      "cursorText": "#ffffff",
       "cursor": "#181d18",
       "normal": {
         "black": "#f6fbf2",

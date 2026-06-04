@@ -53,7 +53,7 @@
     "mTertiary": "#502d9c",
     "mOnTertiary": "#ffffff",
     "mError": "#da4453",
-    "mOnError": "#ffffff",
+    "mOnError": "#000000",
     "mSurface": "#d0d3db",
     "mOnSurface": "#111218",
     "mHover": "#005cff",
@@ -66,7 +66,7 @@
       "background": "#d0d3db",
       "foreground": "#111218",
       "cursor": "#005cff",
-      "cursorText": "#d0d3db",
+      "cursorText": "#ffffff",
       "selectionBg": "#005cff",
       "selectionFg": "#ffffff",
       "normal": {
